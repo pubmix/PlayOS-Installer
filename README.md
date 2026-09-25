@@ -2,7 +2,9 @@
 
 A single-file Windows app for installing ChromaPlayer on a ModRetro Chromatic **PCB 100-0171-08**.
 
-**[Download ChromaPlayer for Windows](https://github.com/pubmix/PlayOS-Installer/releases/download/v0.2.0-alpha.1/ChromaPlayer-Installer.exe)**
+**[Download ChromaPlayer — public releases and updates](https://github.com/pubmix/PlayOS-Installer/releases)**
+
+Share that permanent page. New versions appear there, and previous versions remain available. Inside the newest release, download **ChromaPlayer-Installer.exe**.
 
 This is an **experimental alpha**, not an official ModRetro product. Windows 10/11 x64 only. The full installation sequence has not yet been qualified on hardware with this release.
 
@@ -43,3 +45,7 @@ The [release page](https://github.com/pubmix/PlayOS-Installer/releases/tag/v0.2.
 The original firmware-free v0.1.0 release remains available for historical reference.
 
 For a complete rebuild, use the source archive attached to the release. This Git repository contains the installer code; the archive additionally supplies the corresponding firmware source, images, runtime binaries, notices, and build instructions.
+
+## Publishing updates
+
+Repository owners can publish new versions on the same public page. See [PUBLISHING.md](PUBLISHING.md) for the GitHub button-by-button process or use `publish_release.py` to validate and upload a new release. Updates do not require a new repository or a new shared page link.
