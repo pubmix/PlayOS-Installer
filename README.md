@@ -1,70 +1,45 @@
-# PlayOS Installer
+# ChromaPlayer Installer
 
-An experimental desktop installer for ChromaPlayer on the ModRetro Chromatic.
-Independent project; not an official ModRetro product. Supported PCB target: **100-0171-08 only**.
+A single-file Windows app for installing ChromaPlayer on a ModRetro Chromatic **PCB 100-0171-08**.
 
-## Important: bring a firmware pack
+**[Download ChromaPlayer for Windows](https://github.com/pubmix/PlayOS-Installer/releases/download/v0.2.0-alpha.1/ChromaPlayer-Installer.exe)**
 
-This public repository and its downloads contain the **installer, not ChromaPlayer firmware**.
-The current firmware remains private and has local-server-dependent features. Publishing an installer does not make those services portable. Do not distribute firmware until its corresponding source, notices, branding/assets, and public server configuration have been reviewed for release.
+This is an **experimental alpha**, not an official ModRetro product. Windows 10/11 x64 only. The full installation sequence has not yet been qualified on hardware with this release.
 
-Obtain a trusted compatible pack containing `manifest.json`, `fpga.fs`, `bootloader.bin`, `partitions.bin`, and `application.bin`. Select that directory in the app. The installer checks SHA-256 hashes for accidental corruption; an unsigned manifest is **not** proof of publisher authenticity. Never load an untrusted pack.
+## Install
 
-## Platform status
+1. Download and open `ChromaPlayer-Installer.exe`. No ZIP extraction, Python, command line, Gowin Designer, or separate firmware selection is needed.
+2. Connect **one** Chromatic using a USB data cable and turn it on.
+3. Confirm that your board is **100-0171-08**, then click **Install ChromaPlayer**.
+4. Leave USB and power connected until the app reports verification complete. Check for the Pubmix splash on the handheld.
 
-| Platform | Package | FPGA backend | Validation |
-| --- | --- | --- | --- |
-| Windows x64 | Standalone executable ZIP | Gowin Programmer V1.9.12.03 | 8 safety tests; packaged GUI smoke test; packaged device preflight passed on a real board. Full GUI installation not yet qualification-tested. Underlying flash commands previously verified on two boards. |
-| macOS | Python launcher/source | openFPGALoader with GWU2X | Experimental; no physical Mac flash test yet |
-| Linux | Python launcher/source | openFPGALoader with GWU2X | Experimental; no physical Linux flash test yet |
+If the device is not detected, use **USB setup help** in the app. A computer that has never used the Chromatic programmer may need the **GWU2X USB driver** supplied with [ModRetro's official updater](https://support.modretro.com/en_us/chromatic-firmware-updater-ryhoYnzCx). Driver setup may require Windows administrator approval. The driver installer is not bundled. Close the official updater before using this app.
 
-No claim of plug-and-play installation across every computer. No automated driver changes, security bypasses, or administrator elevation. Downloads are unsigned; do not bypass OS security warnings. Source launch is available for inspection and local execution.
+The PCB revision is printed on the circuit board. A detected FPGA ID does **not** prove the PCB revision. Do not install on an unknown or different revision.
 
-## Windows
+## What the app does
 
-1. Download and extract the Windows ZIP from Releases. Keep the `_internal` directory alongside the executable.
-2. Install [Gowin Programmer](https://www.gowinsemi.com/en/support/download_eda/) V1.9.12.03 and its GWU2X driver separately. They are not bundled. Designer is not needed to flash a prebuilt image.
-3. Run `PlayOS-Installer.exe`; select `programmer_cli.exe` and your trusted firmware pack.
-4. Connect **one** Chromatic with a USB data cable, switch it on, and confirm its PCB revision.
-5. Click **Check device**. This verifies files, tools, FPGA identity and the ESP32 MAC; it can restart the handheld but does not write flash.
-6. Click **Install ChromaPlayer**, confirm the displayed device, and do not unplug or power off during programming.
-7. Success means the programming tools confirmed verification. Check that the handheld displays Pubmix; the installer does not automatically verify screen, audio, Wi-Fi, or SD behavior.
+- Includes the firmware, openFPGALoader, esptool, and Python runtime.
+- Checks firmware hashes, tools, connected-device count, FPGA ID, and ESP32 identity.
+- Installs and verifies FPGA firmware **before** installing the MCU firmware.
+- Stops if a stage fails, verification is incomplete, or the device changes.
+- Writes logs to `%LOCALAPPDATA%\ChromaPlayer\Logs` and includes a **Save log** button.
+- Keeps advanced file and programmer choices out of the normal flow.
 
-The executable includes esptool/Python components. A console window is retained for reliable tool subprocess execution; the graphical UI is separate.
+Factory firmware is replaced. There is **no automatic backup or rollback**. The installer does not issue a full-chip erase and does not target NVS or SD-card contents. Interrupted flashing can leave a partial installation. Save the log and use the correct recovery procedure; stock recovery requires **MCU first, FPGA second**.
 
-## macOS
+## Release limits
 
-Install Python 3.12 with Tk support, then [openFPGALoader](https://trabucayre.github.io/openFPGALoader/guide/first-steps.html) (`brew install openfpgaloader`). Your openFPGALoader build must support the Gowin GWU2X cable.
+- This executable is unsigned. Signing and a clean-computer installation qualification are still outstanding.
+- Software tests, packaged-runtime checks, and read-only FPGA detection are completed; a full flash through this release is not.
+- The firmware source snapshot includes SD playback, Bluetooth, Wi-Fi and messaging work. This is a development firmware snapshot, not a promise that every feature is production-ready.
+- The library/sync endpoint is still the development LAN address `http://192.168.1.84:8765`; that feature is not portable in this snapshot. SD playback does not require that server. Messaging uses the existing pubmix.com service.
+- macOS/Linux native downloads are not provided by this release.
 
-Run `bash Start-macOS.command` from the extracted source folder. The launcher creates a local `.runtime` environment and installs the pinned Python dependencies from PyPI. On Apple Silicon, the default tool path is `/opt/homebrew/bin/openFPGALoader`; use Browse for another installation.
+## Source and checksums
 
-## Linux
+The [release page](https://github.com/pubmix/PlayOS-Installer/releases/tag/v0.2.0-alpha.1) includes the complete installer/firmware source snapshot, relevant dependency source archives, a standalone firmware pack, and SHA-256 checksums. Build instructions and provenance are inside the source archive. No personal device backups, Wi-Fi credentials, music collection, or NVS images are included.
 
-Install Python 3.12-compatible Python, venv, Tk, openFPGALoader, and the USB access rules recommended by [upstream](https://trabucayre.github.io/openFPGALoader/guide/install.html). Distribution package names vary (often `python3-venv` and `python3-tk`). Your account needs access to both the serial and GWU2X interfaces. Do not run the installer as root just to avoid diagnosing USB permissions.
+The original firmware-free v0.1.0 release remains available for historical reference.
 
-Run `sh start-linux.sh`. It creates `.runtime` and installs the pinned Python dependencies. Use Browse to select openFPGALoader if it is not on PATH.
-
-Both non-Windows backends require `--verify`, use external-flash programming, and stop before MCU flashing if verification is not reported. macOS/Linux need physical qualification before a stable release. Upstream [GW5 external-flash implementation](https://github.com/trabucayre/openFPGALoader/blob/master/src/gowin.cpp) calls SPI flash verification; this is different from its internal-flash path, which does not support verification.
-
-## Safety and recovery
-
-- FPGA is installed and verified **before** MCU. Stock FPGA and custom MCU audio pin directions differ.
-- Exactly one serial device and compatible FPGA are required. ESP32 identity is rechecked before writing and after FPGA reset.
-- Application size is bounded to the supported partition. MCU writes target 0x1000 (bootloader), 0x8000 (partition table), and 0x10000 (application). NVS at 0x9000 and SD contents are not erased by these commands.
-- No guaranteed backup/rollback: earlier stock readback attempts on our hardware failed. This is not a factory-preserving installation.
-- If a tool fails, later stages stop. Save the log. Do not assume a partial installation is bootable. Restoring stock requires the correct official images and **MCU first, FPGA second**. Follow the official recovery procedure for your board, not random images.
-- Do not close the program while flashing. USB loss or forced process termination can still leave a partial installation.
-
-## Development
-
-```text
-python -m venv .venv
-# Activate .venv using the convention for your OS.
-python -m pip install -r requirements.txt
-python -m pip install pyinstaller==6.16.0
-python -m unittest -v
-python app.py
-python build.py
-```
-
-Build on each target OS; PyInstaller is not a cross-compiler. No firmware is added by `build.py`. Mac/Linux launchers are the initial release format; native frozen bundles can be produced on those platforms with the same script. GPL-3.0-or-later; see LICENSE and THIRD_PARTY.md.
+For a complete rebuild, use the source archive attached to the release. This Git repository contains the installer code; the archive additionally supplies the corresponding firmware source, images, runtime binaries, notices, and build instructions.

@@ -1,13 +1,23 @@
-# v0.1.0-alpha.1 — PlayOS Installer
+# ChromaPlayer Installer v0.2.0-alpha.1
 
-Initial experimental installer release.
+Download **ChromaPlayer-Installer.exe**, connect one supported Chromatic, confirm PCB **100-0171-08**, and click **Install ChromaPlayer**.
 
-- Windows x64: extract ZIP and run PlayOS-Installer.exe. Python/esptool bundled; install Gowin Programmer V1.9.12.03 and GWU2X driver separately.
-- macOS: experimental source launcher; Python with Tk and openFPGALoader required. Run bash Start-macOS.command.
-- Linux: experimental source launcher; Python/venv/Tk, USB permissions and openFPGALoader required. Run sh start-linux.sh.
+This release includes firmware and both flashing tools in a single Windows executable. No ZIP extraction, Python installation, command line, Gowin application, or separate firmware selection is needed. A first-time computer may still need the GWU2X USB driver; the app links to ModRetro's official setup page.
 
-**No ChromaPlayer firmware is included.** Select a separately obtained trusted revision-08 firmware pack. Private firmware, source modifications, and local-server configuration have not been published by this release.
+The installer checks firmware checksums and device identity, programs and verifies the FPGA first, then programs and verifies the MCU. Incomplete verification or a changed device stops the process. Logs are saved automatically.
 
-Safety: explicit confirmation, one-device checks, file hashes and size limits, FPGA-first ordering, verification gates, ESP32 identity recheck, error logs, and no full-chip erase. No automatic recovery backup. Do not interrupt flashing.
+## Downloads
 
-Validation: eight safety tests passed; Windows executable launched its GUI and successfully ran packaged esptool and Gowin hardware preflight without flashing. Complete installation through this GUI remains unqualified; underlying Windows programming commands were previously used successfully on two boards. Mac/Linux backend commands are implemented and mock-tested but have not been run on physical Mac/Linux hardware. Packages are unsigned.
+- **ChromaPlayer-Installer.exe** — Windows 10/11 x64 app with firmware included.
+- **ChromaPlayer-Source-v0.2.0-alpha.1.zip** — corresponding MCU/FPGA source, installer source, build instructions, provenance and dependency source packages.
+- **ChromaPlayer-Firmware-v0.2.0-alpha.1.zip** — firmware pack for developers; ordinary users only need the EXE.
+- **SHA256SUMS.txt** — SHA-256 checksums.
+- **VALIDATION.md** — completed checks and remaining qualification.
+
+## Alpha limitations
+
+This release is unsigned and experimental. Software checks and read-only FPGA detection passed, but a complete installation through this release and clean-Windows qualification remain outstanding. Factory firmware is replaced; automatic backup/rollback is not available. Keep USB and power connected during installation.
+
+The library/sync feature still uses a development LAN server; it is not portable in this firmware snapshot. SD playback does not require that server. Messaging uses pubmix.com. Only PCB 100-0171-08 is supported; other boards and macOS/Linux are not qualified by this release.
+
+Independent project, not an official ModRetro product.

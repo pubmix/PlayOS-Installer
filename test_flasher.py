@@ -67,4 +67,21 @@ class Tests(unittest.TestCase):
             self.assertIn('--write-flash',run.call_args_list[0].args[0])
             self.assertIn('write_flash',run.call_args_list[1].args[0])
 
+    def test_incomplete_verification_never_writes_mcu(self):
+        e=self.engine(); e.backend='openfpgaloader'
+        with patch.object(e,'check',return_value='original'), patch.object(e,'run',return_value='Verifying write (May take time)\nReading 50%') as run:
+            with self.assertRaisesRegex(RuntimeError,'MCU was NOT'): e.install()
+            self.assertEqual(run.call_count,1)
+
+    def test_device_swap_after_fpga_stops_mcu(self):
+        e=self.engine()
+        with patch.object(e,'check',return_value='original'), patch.object(e,'identify',return_value='changed'), patch('flasher.single_port',return_value='COM4'), patch('flasher.time.sleep'), patch.object(e,'run',side_effect=['Program and Verify Flash successfully','Finished']) as run:
+            with self.assertRaisesRegex(RuntimeError,'Device identity changed'): e.install()
+            self.assertEqual(run.call_count,2)
+
+    def test_missing_mcu_hash_is_failure(self):
+        e=self.engine(); e.backend='openfpgaloader'
+        with patch.object(e,'check',return_value='original'), patch.object(e,'identify',return_value='original'), patch('flasher.single_port',return_value='COM4'), patch('flasher.time.sleep'), patch.object(e,'run',side_effect=['Verifying write\nReading 100%\nDone','Hash of data verified\n'*2]):
+            with self.assertRaisesRegex(RuntimeError,'Not all three'): e.install()
+
 if __name__=='__main__': unittest.main()

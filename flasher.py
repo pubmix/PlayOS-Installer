@@ -39,7 +39,7 @@ def single_port():
 
 def esp_command(args):
     if getattr(sys, 'frozen', False):
-        return [sys.executable, '--esptool', *args]
+        return [str(Path(sys._MEIPASS)/'tools'/'esp-runner.exe'), *args]
     return [sys.executable, '-m', 'esptool', *args]
 
 def mcu_command(port, folder):
@@ -118,7 +118,7 @@ class Flasher:
     def check(self):
         self.progress(0,'Checking files and tools')
         verify_pack(self.folder)
-        if not Path(self.programmer).is_file(): raise RuntimeError('Select Gowin programmer_cli.exe first.')
+        if not Path(self.programmer).is_file(): raise RuntimeError('The bundled programmer is missing. Download the complete installer again.')
         help_text=self.run([self.programmer,'--help'],30)
         if self.backend=='gowin' and 'V1.9.12.03' not in help_text:
             raise RuntimeError('This installer is tested with Gowin Programmer V1.9.12.03 only.')
@@ -141,8 +141,9 @@ class Flasher:
         if self.check()!=original: raise RuntimeError('Device changed. Nothing flashed; check the intended unit again.')
         self.progress(1,'Installing FPGA — do not unplug')
         args=self.gowin(54)+['--fsFile',str(self.folder/'fpga.fs')] if self.backend=='gowin' else [self.programmer,'--cable','gwu2x','--write-flash','--verify',str(self.folder/'fpga.fs')]
-        result=self.run(args)
-        verified='Program and Verify Flash successfully' in result if self.backend=='gowin' else ('Verifying write' in result and not re.search(r'not supported|verification failed|failed to read|\bFAIL\b',result,re.I))
+        result=self.run(args,timeout=600)
+        clean=re.sub(r'\x1b\[[0-9;]*m','',result)
+        verified='Program and Verify Flash successfully' in clean if self.backend=='gowin' else (re.search(r'Verifying write.*?Reading.*?\bDone\b',clean,re.S) is not None and not re.search(r'not supported|verification failed|failed to read|\bFAIL\b',clean,re.I))
         if not verified:
             raise RuntimeError('FPGA verification not confirmed. MCU was NOT written.')
         self.progress(2,'Restarting FPGA')
